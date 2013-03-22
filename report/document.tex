@@ -1,0 +1,76 @@
+%%This is a very basic article template.
+%%There is just one section and two subsections.
+
+\documentclass[12pt]{article}
+\usepackage{fullpage}
+
+\usepackage[english]{babel}
+\usepackage[utf8x]{inputenc}
+\usepackage{amsfonts}
+\usepackage{amsmath}
+\usepackage{enumerate}
+
+
+\begin{document}
+
+\section{Introduction}
+Let $\Omega=(a_x, b_x)\times(a_y, b_y) \times (a_y, b_y) \in
+\mathbb{R}^3$ with its boundary $\Gamma=\partial \Omega$ and
+$J=(0,T]$ be the time interval, $T>0$. The following Initial Boundary
+Value Problem (IBVP) is considered:
+\begin{eqnarray}
+u_t= \nabla\cdot(a\nabla u) + c_g\nabla\cdot(u \nabla g) +  \nonumber \\
+a_h\nabla\cdot(u \nabla h) +c(t, x, y) u + f&, \quad t\in J, \quad 
+(x,y,z)\in \Omega \label{eq:heat}\\
+u(0,x,y,z) = u_0(x,y,z)\\
+u_x=u_y=y_z = 0, \quad (x,y,z) \in \Gamma \\ 
+g_x=g_y=g_z = 0, \quad (x,y,z) \in\Gamma \\
+h_x=h_y=h_z = 0, \quad (x,y,z) \in\Gamma 
+\end{eqnarray}
+
+
+
+
+\section{ADI Method implementation.}
+Alternating Ditection Implicit method is a computationally efficient
+scheme, that satisfies the
+  following properties:
+  \begin{itemize}
+\item has accurancy $O(k^2 + h^2)$, $k$ is the time step and $h$ the
+spatial step;
+    \item is unconditionally stable;
+\item number of operations per time step is proportional to the number
+of unknowns, $O(M)$
+     where $M$ is the number of unknowns.       
+  \end{itemize}
+
+\subsection{Douglas-Gunn method}
+Let us define the operators:
+\begin{eqnarray}
+A_1u = -(au_x)_x  - c_g(u g_x)_x - c_h(u h_x)_x  - \frac{1}{3}cu, \nonumber \\
+A_2u = -(au_y)_y  - c_g(u g_y)_y - c_h(u h_y)_y  - \frac{1}{3}cu, \nonumber \\
+A_3u = -(au_z)_z  - c_g(u g_z)_z - c_h(u h_z)_z  - \frac{1}{3}cu, \nonumber
+\end{eqnarray}
+then equation %(\ref{eq:heat})
+ can be rewitten as:
+\begin{eqnarray} 
+u_t + A_1u + A_2u  + A_3 u= f. \label{eq:heatA}
+\end{eqnarray}
+Replacing the operators $A_1$, $A_2$ and $A_3$ (\ref{eq:heatA}) respectively
+by their spatial approximations $A_{1h}$, $A_{2h}$ and $A_{3h}$, the proposed Douglas-Gunn method
+is:
+\begin{align*}
+(I+\frac{k}{2}A_{1h})u^* &= (I-\frac{k}{2}A_{1h} - k A_{2h} - k A_{3h})u^n +
+k f^{n}, \quad &\text{(x-sweep)}\\
+(I+\frac{k}{2}A_{2h})u^{**} &= u^* + \frac{k}{2}A_{2h} u^n , \quad &\text{(y-sweep)}\\
+(I + \frac{k}{2} A_{3h})u^{n+1} &= u^{**} + \frac{k}{2}A_{3h} u^n + \frac{k}{2}
+(f^{n+1} - f^{n}), \quad &\text{(z-sweep)}.
+\end{align*} 
+
+ 
+\subsection{Another subtitle}
+
+{\LaTeX}
+
+
+\end{document}
