@@ -21,6 +21,8 @@
 % Output Arguments:
 %	u:	[NxNxN]: the function u(x,y,z,n+1)
 %
+% Author: Jiorgos Grekas, (grekas.g@gmail.com)
+%
 function myadi_3D
 x= zeros(5,5,2);
 
@@ -79,10 +81,10 @@ N= size(f,1); %h = 1/(N-1)
 df= zeros(size(f));
 
 df(2:end-1,:,:)= (f(3:end,:,:) - f(1:end-2,:,:))*0.5*(N-1); 
-if( strcmp(boundaryCond,'dirichlet') )
-   df(1,:,:)= ( f(2,:,:) - f(1,:,:) )* (N-1);
-   df(end,:,:)= ( f(end,:,:) - f(end-1,:,:) )* (N-1);
-end
+% if( strcmp(boundaryCond,'dirichlet') )
+%    df(1,:,:)= ( f(2,:,:) - f(1,:,:) )* (N-1);
+%    df(end,:,:)= ( f(end,:,:) - f(end-1,:,:) )* (N-1);
+% end
 return;
 
 function df = derivative_y(f, boundaryCond)
@@ -90,10 +92,6 @@ N= size(f,1); %h = 1/(N-1)
 df= zeros(size(f));
 
 df(:,2:end-1,:)= (f(:,3:end,:) - f(:,1:end-2,:))*0.5*(N-1); 
-if( strcmp(boundaryCond,'dirichlet') )
-   df(:,1,:)= ( f(:,2,:) - f(:,1,:) )* (N-1);
-   df(:,end,:)= ( f(:,end,:) - f(:,end-1,:) )* (N-1);
-end
 %df= derivative_x(permute(f, [2,1,3]), boundaryCond);
 return;
 
@@ -102,9 +100,5 @@ N= size(f,1); %h = 1/(N-1)
 df= zeros(size(f));
 
 df(:,:,2:end-1)= (f(:,:,3:end) - f(:,:,1:end-2))*0.5*(N-1); 
-if( strcmp(boundaryCond,'dirichlet') )
-   df(:,:,1)= ( f(:,:,2) - f(:,:,1) )* (N-1);
-   df(:,:,end)= ( f(:,:,end) - f(:,:,end-1) )* (N-1);
-end
 %df= derivative_x(permute(f, [3, 1, 2]), boundaryCond);
 return;
