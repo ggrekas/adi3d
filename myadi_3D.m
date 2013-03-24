@@ -1,7 +1,7 @@
 % Alternative Direction Implicit (ADI) method implementation for solving
 % parabolic partial differential equations, with Neumann boundary
 % conditions:
-% u_t = a*(u_xx + u_yy + u_zz) + Cg*\Nabla[u \Nabla(g)]+Ch*\Nabla[u \Nabla(h)]
+% u_t = a*(u_xx + u_yy + u_zz) + Cg*\Nabla[u \Nabla(g)]+Cphi*\Nabla[u \Nabla(phi)]
 % + c*u + f
 %
 % function myadi(u, a, c, f, h_t, Cg, g, Ch, h)
@@ -21,29 +21,108 @@
 % Output Arguments:
 %	u:	[NxNxN]: the function u(x,y,z,n+1)
 %
-function myadi_3D
-x= zeros(5,5,2);
+function myadi_3D(u, a, C, f, h_t, Cg, g, Cphi, phi)
+N = size(u,1);
+h = 1/(N-1);
 
-for j=1:5
-   for k=1:2
-      x(1:end,j,k)=j;
+f = h*h*h_t*f;
+% applies operators Ax, Ay, Az respectively
+[sub_diag_x, diag_x, hyp_diag_x] = compute_x_diags(a, Cg, g, Cphi, phi, C, h); %TODO remove 1/h^2 in derivatives
+[sub_diag_y, diag_y, hyp_diag_y] = compute_y_diags(a, Cg, g, Cphi, phi, C, h);
+[sub_diag_z, diag_z, hyp_diag_z] = compute_z_diags(a, Cg, g, Cphi, phi, C, h);
+
+sub_diag_x = 0.5*h_t*sub_diag_x;
+hyp_diag_x = 0.5*h_t*hyp_diag_x;
+diag_x = 0.5*h_t*diag_x;
+
+sub_diag_y = h_t*sub_diag_y;
+hyp_diag_y = h_t*hyp_diag_y;
+diag_y = h_t*diag_y;
+
+sub_diag_z = h_t*sub_diag_y;
+hyp_diag_z = h_t*hyp_diag_y;
+diag_z = h_t*diag_y;
+
+
+u = x_sweep(u, f, sub_diag_x, diag_x, hyp_diag_x, sub_diag_y, diag_y, hyp_diag_y, ...
+   sub_diag_z, diag_z, hyp_diag_z, h_t);
+
+return;
+
+function u = x_sweep(u, f, sub_diag_x, diag_x, hyp_diag_x, sub_diag_y, diag_y, hyp_diag_y, ...
+   sub_diag_z, diag_z, hyp_diag_z, h_t)
+
+rhs = rhs_calculation_x(u, f, sub_diag_x, diag_x, hyp_diag_x, sub_diag_y, diag_y, hyp_diag_y, ...
+   sub_diag_z, diag_z, hyp_diag_z, h_t);
+
+
+
+
+return;
+
+function rhs = rhs_calculation_x(u, f, sub_diag_x, diag_x, hyp_diag_x, sub_diag_y, diag_y, hyp_diag_y, ...
+   sub_diag_z, diag_z, hyp_diag_z, h_t)
+N = size(u,1);
+h= 1/(N-1);
+rhs = zeros( size(u) );
+
+for i=1:N
+   for j=1:N
+      for k=1:N
+         rhs(i, j, k) = 
+      end
    end
 end
 
-dx= derivative_x(x);
-dy= derivative_y(x);
+rhs(2:end-1, 2:end-1, 2:end-1) = (h*h + sub_diag_x(1:end-2, 1:end-2, 1:end-2) +...
+   hyp_diag)
 
-[sub_diag_x, diag_x, hyp_diag_x] = compute_hyp_sub_diag_x(a, Cg, g, Ch, h, h_t);
 return;
 
 
-function [sub_diag, diag, hyp_diag] = compute_hyp_diag_x(a, Cg, g, Ch, h, h_t)
+
+function [sub_diag, diag, hyp_diag] = compute_x_diags(a, Cg, g, Cphi, phi,...
+   C, h)
+a_x = derivative_x(a);
 g_x = derivative_x(g);
-h_x = derivative_x(h);
+phi_x = derivative_x(phi);
 
-hyp_diag = 0.5*ht*()
+u_x_coeff = 0.5*h*(a_x + Cg.*g_x + Cphi.*phi_x); 
+hyp_diag = a + u_x_coeff;
+sub_diag = a - u_x_coeff;
 
+diag = -2*a + h*h*( Cg.*derivative_xx(g) + Cphi.*derivative_xx(phi) +...
+   1/3*C);
 
+return;
+
+function [sub_diag, diag, hyp_diag] = compute_y_diags(a, Cg, g, Cphi, phi,...
+   C, h)
+a_y = derivative_y(a);
+g_y = derivative_y(g);
+phi_y = derivative_y(phi);
+
+u_y_coeff = 0.5*h*(a_y + Cg.*g_y + Cphi.*phi_y); 
+hyp_diag = a + u_y_coeff;
+sub_diag = a - u_y_coeff;
+
+diag = -2*a + h*h*( Cg.*derivative_yy(g) + Cphi.*derivative_yy(phi) +...
+   1/3*C);
+
+return;
+
+function [sub_diag, diag, hyp_diag] = compute_z_diags(a, Cg, g, Cphi, phi,...
+   C, h)
+a_z = derivative_z(a);
+g_z = derivative_z(g);
+phi_z = derivative_z(phi);
+
+u_z_coeff = 0.5*h*(a_z + Cg.*g_z + Cphi.*phi_z); 
+hyp_diag = a + u_z_coeff;
+sub_diag = a - u_z_coeff;
+
+diag = -2*a + h*h*( Cg.*derivative_zz(g) + Cphi.*derivative_zz(phi) +...
+   1/3*C);
 
 return;
 
