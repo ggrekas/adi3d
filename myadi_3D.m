@@ -51,8 +51,8 @@ else
 end
 
 
-rhs = zeros(size(u));
-u_mid = x_sweep(rhs, u, f_cur, sub_diag_x, diag_x, hyp_diag_x, sub_diag_y, diag_y, hyp_diag_y, ...
+%rhs = zeros(size(u));
+u_mid = x_sweep( u, f_cur, sub_diag_x, diag_x, hyp_diag_x, sub_diag_y, diag_y, hyp_diag_y, ...
    sub_diag_z, diag_z, hyp_diag_z);
 u_mid = y_sweep(u_mid, u, -0.5*sub_diag_y, -0.5*diag_y, -0.5*hyp_diag_y);
 u = z_sweep(u_mid, u, -0.5*sub_diag_y, -0.5*diag_y, -0.5*hyp_diag_y, f_cur, f_next);
@@ -62,11 +62,11 @@ function u_mid = x_sweep(u, f, sub_diag_x, diag_x, hyp_diag_x, sub_diag_y, diag_
    sub_diag_z, diag_z, hyp_diag_z)
 
 rhs = rhs_calculation_x(u, f, sub_diag_x, diag_x, hyp_diag_x, sub_diag_y, diag_y, hyp_diag_y, ...
-   sub_diag_z, diag_z, hyp_diag_z, h_t);
+   sub_diag_z, diag_z, hyp_diag_z);
 
 u_mid = u;
-u_mid(1) = u_mid -1;
-u_mid(1) = u_mid +1;
+u_mid(1) = u_mid(1) -1;
+u_mid(1) = u_mid(1) +1;
 hyp_diag_x(1,:,:) = hyp_diag_x(1,:,:) + sub_diag_x(1,:,:);
 sub_diag_x(end,:,:) = hyp_diag_x(end,:,:) + sub_diag_x(end,:,:);
 
@@ -79,18 +79,32 @@ rhs = rhs_calculation_y(u_mid, u, sub_diag_y, diag_y, hyp_diag_y);
 
 hyp_diag_y(:,1,:) = hyp_diag_y(:,1,:) + sub_diag_y(:,1,:);
 sub_diag_y(:,end,:) = hyp_diag_y(:,end,:) + sub_diag_y(:,end,:);
-u_mid=TDMAsolver(u_mid, sub_diag_y, diag_y, hyp_diag_y, rhs);
+
+% fix it
+u_mid = permute(u_mid, [2,1,3]);
+u_mid = TDMAsolver( u_mid, permute(sub_diag_y, [2, 1, 3]),...
+  permute(diag_y, [2, 1, 3]), permute(hyp_diag_y, [2, 1, 3]),...
+  permute(rhs, [2, 1, 3]) );
+
+u_mid = permute(u_mid, [2, 1, 3]);
 
 return;
 
 
-function u = z_sweep(u_mid, u, sub_diag_z, diag_z, hyp_diag_z)
+function u = z_sweep(u_mid, u, sub_diag_z, diag_z, hyp_diag_z, f_cur, f_next)
 
-rhs = rhs_calculation_z(u_mid, u, sub_diag_z, diag_z, hyp_diag_z);
+rhs = rhs_calculation_z(u_mid, u, sub_diag_z, diag_z, hyp_diag_z, f_cur, f_next);
 
 hyp_diag_z(:,:,1) = hyp_diag_z(:,:,1) + sub_diag_z(:,:,1);
 sub_diag_z(:,:,end) = hyp_diag_z(:,:,end) + sub_diag_z(:,:,end);
-u=TDMAsolver(u, sub_diag_z, diag_z, hyp_diag_z, rhs);
+
+%fix it
+u = permute(u, [3, 1, 2]);
+u = TDMAsolver(u, permute(sub_diag_z, [3, 1, 2]),...
+   permute(diag_z, [3, 1, 2]), permute(hyp_diag_z, [3, 1, 2]),...
+   permute(rhs, [3, 1, 2]) );
+
+u = permute(u, [2, 3, 1]);
 
 return;
 
@@ -132,10 +146,10 @@ return;
 
 function rhs = rhs_z(rhs, u, sub_diag_z, hyp_diag_z)
 rhs(:,:,2:end-1) = rhs(:,:,2:end-1) + sub_diag_z(:,:,2:end-1).*u(:,:,1:end-2)...
-   + hyp_diag_z(:,:,2:end-1).*u(:,:,3:end-1);
+   + hyp_diag_z(:,:,2:end-1).*u(:,:,3:end);
 
 %Neumann boundary conditions
-rhs(:,:,1) = rhs(:,:,1) + ( hyp_diag_z(:,:,1) + sub_diag_z(:,:,1) ).* u(:,:,1);
+rhs(:,:,1) = rhs(:,:,1) + ( hyp_diag_z(:,:,1) + sub_diag_z(:,:,1) ).* u(:,:,2);
 rhs(:,:,end) = rhs(:,:,end) + ( hyp_diag_z(:,:,end) + sub_diag_z(:,:,end) ).* u(:,:,end-1);
 return;
 
