@@ -12,7 +12,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]){
    double *a, *diag, *c, *V, *U;
    double *sub_diag, *hyp_diag;
    double *d, *rhs, b;
-   int N, i, step, ismatrix, dims; /*can be replaced with mxGetM*/
+   int N, i, step, dims, j; /*can be replaced with mxGetM*/
    
    if( 0 == nlhs || nrhs < 5)
       mexErrMsgTxt("not enough input arguments");
@@ -28,17 +28,21 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]){
    
    d= (double *)mxMalloc(N*sizeof(double));
    rhs= (double *)mxMalloc(N*sizeof(double));
-   
+  
+   #if 0
    if( N==mxGetN(prhs[1]) )
       ismatrix=1;
    else
       ismatrix=0;
-   
+   #endif
    dims = mxGetNumberOfDimensions( prhs[0] );
-   for(i =0; i < pow(N, dims-1 ); ++i){
-      init_param( d, diag+i*N, N);
-      init_param( rhs, V+i*N, N);
-      solveMatrix(N, sub_diag+i*N*ismatrix, d, hyp_diag+i*N*ismatrix, rhs, U +i*N);
+   for(i =0; i < N; ++i){
+      for( j =0; j < N; ++j){ 
+         init_param( d, diag+ j*N +i*N*N, N);
+         init_param( rhs, V + j*N + i*N*N, N);
+         solveMatrix(N, sub_diag+ j*N + i*N*N, d, hyp_diag+j*N+i*N*N, rhs,
+                 U + j*N + i*N*N);
+      }
    }
    mxFree(d);
    mxFree(rhs);
