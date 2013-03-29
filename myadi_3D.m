@@ -1,32 +1,34 @@
 % Alternative Direction Implicit (ADI) method implementation for solving
 % parabolic partial differential equations, with Neumann boundary
 % conditions:
-% u_t = a*(u_xx + u_yy + u_zz) + Cg*\Nabla[u \Nabla(g)]+Cphi*\Nabla[u \Nabla(phi)]
+% u_t = \Nabla[ a (\Nabla(u))] + Cg*\Nabla[u \Nabla(g)]+Cphi*\Nabla[u \Nabla(phi)]
 % + c*u + f
 %
-% function myadi(u, a, c, f, h_t, Cg, g, Ch, h)
+% function u = myadi_3D(u, a, C, f_cur, f_next, Cg, g, Cphi, phi, h_t)
 %
 % 
 %
 % Input Arguments:
-%	u:    [NxNxN]: the input function. u(x,y,z, n)
-%	a:  	[1x1] or [NxNxN]: the diffusion coefficient.
-%	Cg:  	[1x1] or [NxNxN].
-%	g:  	[NxNxN].
-%	Ch:  	[1x1] or [NxNxN].
-%	h:  	[NxNxN].
-%	C:  	[NxNxN]. c(x,y,z,n+1/2)
-%	f: [NxN]: f(x,y,n+1/2):=0.5*[ f(x,y,n)+f(x,y,n+1) ]
+%	u:     [NxNxN]: the input function. u(x,y,z,n)
+%	a:  	 [1x1] or [NxNxN]: the diffusion coefficient.
+%	C:  	 [NxNxN]. c(x,y,z,n+1/2)
+%	f_cur: [NxNxN]: f(x,y,z,n)
+%	f_next:[NxNxN]: f(x,y,z,n+1)
+%	Cg:  	 [1x1] or [NxNxN].
+%	g:  	 [NxNxN].
+%	Ch:  	 [1x1] or [NxNxN].
+%	h_t:   [1x1]: the time step
 %
 % Output Arguments:
 %	u:	[NxNxN]: the function u(x,y,z,n+1)
 %
-function u = myadi_3D(u, a, C, f_cur, f_next,  h_t, Cg, g, Cphi, phi)
+function u = myadi_3D(u, a, C, f_cur, f_next, Cg, g, Cphi, phi, h_t)
 N = size(u,1);
 h = 1/(N-1);
 
 f_cur = h*h*h_t*f_cur;
 f_next = h*h*h_t*f_next;
+
 % applies operators Ax, Ay, Az respectively
 [sub_diag_x, diag_x, hyp_diag_x] = compute_x_diags(a, Cg, g, Cphi, phi, C, h); %TODO remove 1/h^2 in derivatives
 [sub_diag_y, diag_y, hyp_diag_y] = compute_y_diags(a, Cg, g, Cphi, phi, C, h);
@@ -251,7 +253,7 @@ function df = derivative_zz(f)
 N= size(f,1); %h = 1/(N-1)
 df= zeros(size(f));
 
-df(:,:,2:end-1)= f(:,:,3:end) -2*df(:,:,2:end-1)+ f(:,:,1:end-2); 
+df(:,:,2:end-1)= f(:,:,3:end) -2*f(:,:,2:end-1)+ f(:,:,1:end-2); 
 df(:,:,1)= 2*( f(:,:,2) -f(:,:,1) );
 df(:,:,end)= 2*( f(:,:,end-1) -f(:,:,end) );
 
