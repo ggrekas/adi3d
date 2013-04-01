@@ -22,6 +22,12 @@
 % Output Arguments:
 %	u:	[NxNxN]: the function u(x,y,z,n+1)
 %
+% [1]: The heat equation in 2 and 3 spatial dimensions, lecture 15 on
+%  math 337, by T. Lakoba, University of Vermont.
+% [2]: Jim Douglas and Jr. and Seongjai Kim, On Accuracy of Alternating Direction Implicit Methods for Parabolic
+% Equations, 1999
+%
+% Author: Giorgos Grekas (grekas.g@gmail.com)
 function u = myadi_3D(u, a, C, f_cur, f_next, Cg, g, Cphi, phi, h_t)
 N = size(u,1);
 h = 1/(N-1);
