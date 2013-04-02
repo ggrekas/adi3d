@@ -14,9 +14,10 @@
 %	C:  	 [NxNxN]. c(x,y,z,n+1/2)
 %	f_cur: [NxNxN]: f(x,y,z,n)
 %	f_next:[NxNxN]: f(x,y,z,n+1)
-%	Cg:  	 [1x1] or [NxNxN].
-%	g:  	 [NxNxN].
-%	Ch:  	 [1x1] or [NxNxN].
+%	Cg:  	 [1x1] or [NxNxN]. Cg(x,y,z,n+1/2)
+%	g:  	 [NxNxN]. g(x,y,z,n+1/2)
+%	Cphi:  [1x1] or [NxNxN]. Cphi(x,y,z,n+1/2)
+%	phi:   [NxNxN]. phi(x,y,z,n+1/2)
 %	h_t:   [1x1]: the time step
 %
 % Output Arguments:
@@ -24,10 +25,13 @@
 %
 % [1]: The heat equation in 2 and 3 spatial dimensions, lecture 15 on
 %  math 337, by T. Lakoba, University of Vermont.
-% [2]: Jim Douglas and Jr. and Seongjai Kim, On Accuracy of Alternating Direction Implicit Methods for Parabolic
-% Equations, 1999
+% [2]: Jim Douglas and Jr. and Seongjai Kim, On Accuracy of Alternating
+%  Direction Implicit Methods for Parabolic
+%  Equations, 1999
 %
 % Author: Giorgos Grekas (grekas.g@gmail.com)
+%
+
 function u = myadi_3D(u, a, C, f_cur, f_next, Cg, g, Cphi, phi, h_t)
 N = size(u,1);
 h = 1/(N-1);
