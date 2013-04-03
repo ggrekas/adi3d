@@ -132,15 +132,15 @@ double * derivative_x(double * f, mwSize N){
 	N2=N*N;
 	Ih=0.5*(N-1); // 0.5/h
 	
-	df= (double *) malloc(N*N*N*sizeof(double)); //TODO free me!!!!!
+	df= (double *) calloc(N*N*N*sizeof(double)); //TODO free me!!!!!
 	
 	for(k= 0; k< N; ++k){
 		for(j= 0; j< N; ++j){
 			for(i= 1; i< N-1; ++i){
 				df[i+ j*N+ k*N2]= Ih*(f[i+1+ j*N+ k*N2]- f[i-1+ j*N+ k*N2]);
 			}
-			df[j*N+ k*N2]= 0;
-			df[N-1+ j*N+ k*N2]= 0;
+			//df[j*N+ k*N2]= 0;
+			//df[N-1+ j*N+ k*N2]= 0;
 		}
 	}
 	return df;
@@ -151,7 +151,7 @@ double * derivative_y(double * f, mwSize N){
 	double *df, Ih;
 	mwSize N2, i,j,k;
 		
-	df= (double *) malloc(N*N*N*sizeof(double)); //TODO free me!!!!!
+	df= (double *) calloc(N*N*N*sizeof(double)); //TODO free me!!!!!
 
 	N2=N*N;
 	Ih= 0.5*(N-1); // 0.5/h
@@ -162,11 +162,11 @@ double * derivative_y(double * f, mwSize N){
 				df[i+ j*N+ k*N2]= Ih*(f[i+ (j+1)*N+ k*N2]- + f[i+ (j-1)*N+ k*N2]);
 			}
 		}
-			for(i= 0; i< N; ++i){
+			/*for(i= 0; i< N; ++i){
 				df[i+ k*N2]= 0;
 				df[i+ (N-1)*N+ k*N2]= 0;
-			}
-	}	
+			}*/
+	}
 	return df;
 }
 
@@ -174,7 +174,7 @@ double * derivative_z(double * f, mwSize N){
 	double *df, Ih;
 	mwSize N2, i,j,k;
 		
-	df= (double *) malloc(N*N*N*sizeof(double)); //TODO free me!!!!!
+	df= (double *) calloc(N*N*N*sizeof(double)); //TODO free me!!!!!
 
 	N2=N*N;
 	Ih= 0.5*(N-1); // 0.5/h
@@ -187,7 +187,7 @@ double * derivative_z(double * f, mwSize N){
 		}
 	}
 	
-	for(j= 0; j< N; ++j){
+	/*for(j= 0; j< N; ++j){
 		for(i= 0; i< N; ++i){
 			df[i+ j*N]= 0;
 		}
@@ -197,7 +197,7 @@ double * derivative_z(double * f, mwSize N){
 		for(i= 0; i< N; ++i){
 			df[i+ j*N+ (N-1)*N2]= 0;
 		}
-	}
+	}*/
 	return df;
 }
 	
