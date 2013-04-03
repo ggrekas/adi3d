@@ -14,16 +14,16 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]){
 	double *a, *Cg, *g, *Cphi, *phi, *C, *h; //input
 	char *xyz; //input
 	double *sub_diag, *diag, *hyp_diag; //output
-	
-	
+		
 	//internal variables
 	double *a_d, *g_d, *phi_d, hI2, *u_d_coeff, hh, *g_dd, *phi_dd;
-	
+	double phiTerm, gTerm;
+	size_t dimCphi, dimCg;
 	mwSize N, N2, i, j, k, ndim;
 	const mwSize *dims;
 
 	if( 3 != nlhs || nrhs != 7)
-        mexErrMsgTxt("not correct number of input arguments");
+		mexErrMsgTxt("not correct number of input arguments");
 
 	//input
 	a= mxGetPr(prhs[0]);
@@ -33,6 +33,9 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]){
 	phi= mxGetPr(prhs[4]);
 	C= mxGetPr(prhs[5]);
 	xyz= (char *) mxGetData(prhs[6]);
+	
+	dimCphi= mxGetM(prhs[3]);
+	dimCg= mxGetM(prhs[1]);
 	
 	//output
 	ndim = mxGetNumberOfDimensions(prhs[0]);
@@ -78,9 +81,20 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]){
 	for(k= 0; k< N; ++k){
 			for(j= 0; j< N; ++j){
 				for(i= 0; i< N; ++i){
+					if (dimCphi> 1){
+						phiTerm= Cphi[i+ j*N+ k*N2]*phi_d[i+ j*N+ k*N2];
+					}else{
+						phiTerm= Cphi[0]*phi_d[i+ j*N+ k*N2];
+					}
+					
+					if (dimCg> 1){
+						gTerm= Cg[i+ j*N+ k*N2]*g_d[i+ j*N+ k*N2];
+					}else{
+						gTerm= Cg[0]*g_d[i+ j*N+ k*N2];
+					}
+					
 					u_d_coeff[i+ j*N+ k*N2]= hI2*(a_d[i+ j*N+ k*N2]+
-									Cg[i+ j*N+ k*N2]*g_d[i+ j*N+ k*N2]+
-									Cphi[i+ j*N+ k*N2]*phi_d[i+ j*N+ k*N2]);
+									gTerm+ phiTerm);
 				}
 			}
 		}
@@ -101,10 +115,20 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]){
 		for(k= 0; k< N; ++k){
 			for(j= 0; j< N; ++j){
 				for(i= 0; i< N; ++i){
+					if (dimCphi> 1){
+						phiTerm= Cphi[i+ j*N+ k*N2]*phi_dd[i+ j*N+ k*N2];
+					}else{
+						phiTerm= Cphi[0]*phi_dd[i+ j*N+ k*N2];
+					}
+					
+					if (dimCg> 1){
+						gTerm= Cg[i+ j*N+ k*N2]*g_dd[i+ j*N+ k*N2];
+					}else{
+						gTerm= Cg[0]*g_dd[i+ j*N+ k*N2];
+					}
+										
 					diag[i+ j*N+ k*N2]= -2*a[i+ j*N+ k*N2]+ hh*(
-									Cg[i+ j*N+ k*N2]*g_dd[i+ j*N+ k*N2]+
-									Cphi[i+ j*N+ k*N2]*phi_dd[i+ j*N+ k*N2]+
-									C[i+ j*N+ k*N2]/3.0);
+									gTerm+ phiTerm+ C[i+ j*N+ k*N2]/3.0);
 				}
 			}
 		}
@@ -133,6 +157,8 @@ double * derivative_x(double * f, mwSize N){
 			for(i= 1; i< N-1; ++i){
 				df[i+ j*N+ k*N2]= Ih*(f[i+1+ j*N+ k*N2]- f[i-1+ j*N+ k*N2]);
 			}
+// 			df[j*N+ k*N2]= 0;
+// 			df[N-1+ j*N+ k*N2]= 0;
 		}
 	}
 	return df;
@@ -154,7 +180,11 @@ double * derivative_y(double * f, mwSize N){
 				df[i+ j*N+ k*N2]= Ih*(f[i+ (j+1)*N+ k*N2]- + f[i+ (j-1)*N+ k*N2]);
 			}
 		}
-	}
+// 			for(i= 0; i< N; ++i){
+// 				df[i+ k*N2]= 0;
+// 				df[i+ (N-1)*N+ k*N2]= 0;
+// 			}
+	}	
 	return df;
 }
 
@@ -174,6 +204,18 @@ double * derivative_z(double * f, mwSize N){
 			}
 		}
 	}
+	
+// 	for(j= 0; j< N; ++j){
+// 		for(i= 0; i< N; ++i){
+// 			df[i+ j*N]= 0;
+// 		}
+// 	}
+// 	
+// 	for(j= 0; j< N; ++j){
+// 		for(i= 0; i< N; ++i){
+// 			df[i+ j*N+ (N-1)*N2]= 0;
+// 		}
+// 	}
 	return df;
 }
 	
@@ -267,4 +309,3 @@ double * derivative_zz(double * f, mwSize N){
 	}
 	return df;
 }
-
