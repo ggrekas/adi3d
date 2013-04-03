@@ -19,7 +19,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]){
 	const mwSize *dims;
 
 	if( 1 != nlhs || nrhs != 11)
-		mexErrMsgTxt("not enough input arguments");
+		mexErrMsgTxt("wrong number of arguments");
 
 	u= mxGetPr(prhs[0]);
 	f= mxGetPr(prhs[1]);
@@ -129,3 +129,4 @@ double* rhs_z(double* rhs, double* u, double* sub_diag_z, double* hyp_diag_z, si
 	
 	return rhs;
 }
+
