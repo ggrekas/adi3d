@@ -40,9 +40,14 @@ f_cur = h*h*h_t*f_cur;
 f_next = h*h*h_t*f_next;
 
 % applies operators Ax, Ay, Az respectively
-[sub_diag_x, diag_x, hyp_diag_x] = compute_x_diags(a, Cg, g, Cphi, phi, C, h); %TODO remove 1/h^2 in derivatives
-[sub_diag_y, diag_y, hyp_diag_y] = compute_y_diags(a, Cg, g, Cphi, phi, C, h);
-[sub_diag_z, diag_z, hyp_diag_z] = compute_z_diags(a, Cg, g, Cphi, phi, C, h);
+addpath('mexFiles/')
+[sub_diag_x, diag_x, hyp_diag_x] = compute_xyz_diags(a, Cg, g, Cphi, phi, C, 'x'); %TODO remove 1/h^2 in derivatives
+% [sub_diag_x2, diag_x2, hyp_diag_x2] = compute_x_diags(a, Cg, g, Cphi, phi, C, h); %TODO remove 1/h^2 in derivatives
+[sub_diag_y, diag_y, hyp_diag_y] = compute_xyz_diags(a, Cg, g, Cphi, phi, C, 'y');
+% [sub_diag_y2, diag_y2, hyp_diag_y2] = compute_y_diags(a, Cg, g, Cphi, phi, C, h);
+
+[sub_diag_z, diag_z, hyp_diag_z] = compute_xyz_diags(a, Cg, g, Cphi, phi, C, 'z');
+% [sub_diag_z2, diag_z2, hyp_diag_z2] = compute_z_diags(a, Cg, g, Cphi, phi, C, h);
 
 
 sub_diag_x = 0.5*h_t*sub_diag_x;
@@ -72,6 +77,10 @@ h = 1/(N-1);
 rhs = rhs_calculation_x_sweep(u, f, sub_diag_x, diag_x, hyp_diag_x, sub_diag_y, diag_y, hyp_diag_y, ...
    sub_diag_z, diag_z, hyp_diag_z);
 
+% rhs2 = rhs_calculation_x_sweep2(u, f, sub_diag_x, diag_x, hyp_diag_x, sub_diag_y, diag_y, hyp_diag_y, ...
+%    sub_diag_z, diag_z, hyp_diag_z);
+
+
 u_mid = u;
 u_mid(1) = u_mid(1) -1;
 u_mid(1) = u_mid(1) +1;
@@ -87,6 +96,7 @@ h = 1/(N-1);
 
 
 rhs = rhs_calculation_y_sweep(u_mid, u, sub_diag_y, diag_y, hyp_diag_y);
+% rhs2 = rhs_calculation_y_sweep2(u_mid, u, sub_diag_y, diag_y, hyp_diag_y);
 
 hyp_diag_y(:,1,:) = hyp_diag_y(:,1,:) + sub_diag_y(:,1,:);
 sub_diag_y(:,end,:) = hyp_diag_y(:,end,:) + sub_diag_y(:,end,:);
@@ -107,6 +117,7 @@ N = size(u,1);
 h = 1/(N-1);
 
 rhs = rhs_calculation_z_sweep(u_mid, u, sub_diag_z, diag_z, hyp_diag_z, f_cur, f_next);
+% rhs2 = rhs_calculation_z_sweep2(u_mid, u, sub_diag_z, diag_z, hyp_diag_z, f_cur, f_next);
 
 hyp_diag_z(:,:,1) = hyp_diag_z(:,:,1) + sub_diag_z(:,:,1);
 sub_diag_z(:,:,end) = hyp_diag_z(:,:,end) + sub_diag_z(:,:,end);
@@ -123,8 +134,8 @@ return;
 
 
 
-% right hand side of x sweep
-function rhs = rhs_calculation_x_sweep(u, f, sub_diag_x, diag_x, hyp_diag_x,...
+% % % right hand side of x sweep
+function rhs = rhs_calculation_x_sweep2(u, f, sub_diag_x, diag_x, hyp_diag_x,...
    sub_diag_y, diag_y, hyp_diag_y, sub_diag_z, diag_z, hyp_diag_z)
 N = size(u,1);
 h= 1/(N-1);
@@ -162,8 +173,8 @@ rhs(:,:,2:end-1) = rhs(:,:,2:end-1) + sub_diag_z(:,:,2:end-1).*u(:,:,1:end-2)...
 rhs(:,:,1) = rhs(:,:,1) + ( hyp_diag_z(:,:,1) + sub_diag_z(:,:,1) ).* u(:,:,2);
 rhs(:,:,end) = rhs(:,:,end) + ( hyp_diag_z(:,:,end) + sub_diag_z(:,:,end) ).* u(:,:,end-1);
 return;
-
-function rhs = rhs_calculation_y_sweep(u_mid, u, sub_diag_y, diag_y, hyp_diag_y)
+% 
+function rhs = rhs_calculation_y_sweep2(u_mid, u, sub_diag_y, diag_y, hyp_diag_y)
 N = size(u,1);
 h = 1/(N-1);
 
@@ -172,7 +183,7 @@ rhs = rhs_y(rhs, u, sub_diag_y, hyp_diag_y);
 
 return;
 
-function rhs = rhs_calculation_z_sweep(u_mid, u, sub_diag_z, diag_z, hyp_diag_z, f_cur, f_next)
+function rhs = rhs_calculation_z_sweep2(u_mid, u, sub_diag_z, diag_z, hyp_diag_z, f_cur, f_next)
 N = size(u,1);
 h = 1/(N-1);
 
@@ -181,7 +192,7 @@ rhs = rhs_z(rhs, u, sub_diag_z, hyp_diag_z);
 
 return;
 
-
+% 
 function [sub_diag, diag, hyp_diag] = compute_x_diags(a, Cg, g, Cphi, phi,...
    C, h)
 a_x = derivative_x(a);
@@ -196,7 +207,7 @@ diag = -2*a + h*h*( Cg.*derivative_xx(g) + Cphi.*derivative_xx(phi) +...
    1/3*C);
 
 return;
-
+% 
 function [sub_diag, diag, hyp_diag] = compute_y_diags(a, Cg, g, Cphi, phi,...
    C, h)
 a_y = derivative_y(a);
