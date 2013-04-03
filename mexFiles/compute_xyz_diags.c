@@ -19,10 +19,11 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]){
 	//internal variables
 	double *a_d, *g_d, *phi_d, hI2, *u_d_coeff, hh, *g_dd, *phi_dd;
 	
-	mwSize N, N2, i, j, k, *dims, ndim;
+	mwSize N, N2, i, j, k, ndim;
+	const mwSize *dims;
 
 	if( 3 != nlhs || nrhs != 7)
-        mexErrMsgTxt("not enough input arguments");
+        mexErrMsgTxt("not correct number of input arguments");
 
 	//input
 	a= mxGetPr(prhs[0]);
@@ -33,11 +34,6 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]){
 	C= mxGetPr(prhs[5]);
 	xyz= (char *) mxGetData(prhs[6]);
 	
-	N= (mwSize) mxGetM(prhs[0]);
-	N2= N*N;
-	hI2= 0.5/(N-1);
-	hh= 1.0/((N-1)*(N-1));
-	
 	//output
 	ndim = mxGetNumberOfDimensions(prhs[0]);
 	dims = mxGetDimensions(prhs[0]);
@@ -47,30 +43,28 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]){
 	diag= mxGetPr(plhs[1]);
 	plhs[2] = mxCreateNumericArray(ndim, dims, mxDOUBLE_CLASS, mxREAL);
 	hyp_diag= mxGetPr(plhs[2]);
+	
+	N= (mwSize) mxGetM(prhs[0]);
+	N2= N*N;
+	hI2= 0.5/(N-1);
+	hh= 1.0/((N-1)*(N-1));
 
 	u_d_coeff= (double *) malloc(N*N*N*sizeof(double)); //TODO free me!!!!!	
 	if(xyz[0]=='x'){
-		printf("calling compute_x_diags \n");
-		
 		a_d= derivative_x(a, N);
 		g_d= derivative_x(g, N);
 		phi_d= derivative_x(phi, N);
 		
 		g_dd= derivative_xx(g,N);
 		phi_dd= derivative_xx(phi,N);
-		
 	}else if(xyz[0]=='y'){
-		printf("calling compute_y_diags \n");
-		
 		a_d= derivative_y(a, N);
 		g_d= derivative_y(g, N);
 		phi_d= derivative_y(phi, N);
 		
 		g_dd= derivative_yy(g,N);
 		phi_dd= derivative_yy(phi,N);
-		
 	}else if(xyz[0]=='z'){
-		printf("calling compute_z_diags \n");
 		a_d= derivative_z(a, N);
 		g_d= derivative_z(g, N);
 		phi_d= derivative_z(phi, N);
@@ -132,15 +126,13 @@ double * derivative_x(double * f, mwSize N){
 	N2=N*N;
 	Ih=0.5*(N-1); // 0.5/h
 	
-	df= (double *) calloc(N*N*N*sizeof(double)); //TODO free me!!!!!
+	df= (double *) calloc(N*N*N,sizeof(double)); //TODO free me!!!!!
 	
 	for(k= 0; k< N; ++k){
 		for(j= 0; j< N; ++j){
 			for(i= 1; i< N-1; ++i){
 				df[i+ j*N+ k*N2]= Ih*(f[i+1+ j*N+ k*N2]- f[i-1+ j*N+ k*N2]);
 			}
-			//df[j*N+ k*N2]= 0;
-			//df[N-1+ j*N+ k*N2]= 0;
 		}
 	}
 	return df;
@@ -151,7 +143,7 @@ double * derivative_y(double * f, mwSize N){
 	double *df, Ih;
 	mwSize N2, i,j,k;
 		
-	df= (double *) calloc(N*N*N*sizeof(double)); //TODO free me!!!!!
+	df= (double *) calloc(N*N*N,sizeof(double)); //TODO free me!!!!!
 
 	N2=N*N;
 	Ih= 0.5*(N-1); // 0.5/h
@@ -162,10 +154,6 @@ double * derivative_y(double * f, mwSize N){
 				df[i+ j*N+ k*N2]= Ih*(f[i+ (j+1)*N+ k*N2]- + f[i+ (j-1)*N+ k*N2]);
 			}
 		}
-			/*for(i= 0; i< N; ++i){
-				df[i+ k*N2]= 0;
-				df[i+ (N-1)*N+ k*N2]= 0;
-			}*/
 	}
 	return df;
 }
@@ -173,8 +161,8 @@ double * derivative_y(double * f, mwSize N){
 double * derivative_z(double * f, mwSize N){
 	double *df, Ih;
 	mwSize N2, i,j,k;
-		
-	df= (double *) calloc(N*N*N*sizeof(double)); //TODO free me!!!!!
+	
+	df= (double *) calloc(N*N*N,sizeof(double)); //TODO free me!!!!!
 
 	N2=N*N;
 	Ih= 0.5*(N-1); // 0.5/h
@@ -186,18 +174,6 @@ double * derivative_z(double * f, mwSize N){
 			}
 		}
 	}
-	
-	/*for(j= 0; j< N; ++j){
-		for(i= 0; i< N; ++i){
-			df[i+ j*N]= 0;
-		}
-	}
-	
-	for(j= 0; j< N; ++j){
-		for(i= 0; i< N; ++i){
-			df[i+ j*N+ (N-1)*N2]= 0;
-		}
-	}*/
 	return df;
 }
 	
