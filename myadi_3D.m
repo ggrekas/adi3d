@@ -40,7 +40,7 @@ f_cur = h*h*h_t*f_cur;
 f_next = h*h*h_t*f_next;
 
 % applies operators Ax, Ay, Az respectively
-addpath('mexFiles/')
+%addpath('mexFiles/')
 [sub_diag_x, diag_x, hyp_diag_x] = compute_xyz_diags(a, Cg, g, Cphi, phi, C, 'x'); %TODO remove 1/h^2 in derivatives
 [sub_diag_y, diag_y, hyp_diag_y] = compute_xyz_diags(a, Cg, g, Cphi, phi, C, 'y');
 [sub_diag_z, diag_z, hyp_diag_z] = compute_xyz_diags(a, Cg, g, Cphi, phi, C, 'z');
