@@ -9,8 +9,8 @@ double* rhs_z(double* rhs, double* u, double* sub_diag_z, double* hyp_diag_z, si
 
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]){
 	double *u, *f, *sub_diag_x, *hyp_diag_x, *diag_x, *sub_diag_y, *hyp_diag_y, *diag_y,
-					*sub_diag_z, *hyp_diag_z, *diag_z; //input
-	double *rhs; //output
+					*sub_diag_z, *hyp_diag_z, *diag_z; /*input*/
+	double *rhs; /*output*/
 	
 	double h2;
 
@@ -19,7 +19,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]){
 	if( 1 != nlhs || nrhs != 12)
 		mexErrMsgTxt("wrong number of arguments");
 	
-	//Input
+	/*Input*/
 	u= mxGetPr(prhs[0]);
 	f= mxGetPr(prhs[1]);
 
@@ -37,9 +37,9 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]){
 
 	N= mxGetM(prhs[0]);
 	N2=N*N;
-	h2= 1.0/((N-1)*(N-1)); // h^2
+	h2= 1.0/((N-1)*(N-1)); /* h^2*/
 
-	//Output
+	/*Output*/
 	plhs[0]= prhs[11];
 	rhs= mxGetPr(plhs[0]);
 	
