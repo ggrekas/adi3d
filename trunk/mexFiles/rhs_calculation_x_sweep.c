@@ -15,12 +15,11 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]){
 	double h2;
 
 	size_t N, N2, i, j, k;
-	mwSize ndim;
-	const mwSize *dims;
 
-	if( 1 != nlhs || nrhs != 11)
+	if( 1 != nlhs || nrhs != 12)
 		mexErrMsgTxt("wrong number of arguments");
-
+	
+	//Input
 	u= mxGetPr(prhs[0]);
 	f= mxGetPr(prhs[1]);
 
@@ -40,12 +39,10 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]){
 	N2=N*N;
 	h2= 1.0/((N-1)*(N-1)); // h^2
 
-	//output
-	ndim = mxGetNumberOfDimensions(prhs[0]);
-	dims = mxGetDimensions(prhs[0]);
-	plhs[0] = mxCreateNumericArray(ndim, dims, mxDOUBLE_CLASS, mxREAL);
+	//Output
+	plhs[0]= prhs[11];
 	rhs= mxGetPr(plhs[0]);
-
+	
 	for(k= 0; k< N; ++k){
 		for(j= 0; j< N; ++j){
 			for(i= 0; i< N; ++i){
@@ -71,13 +68,17 @@ double* rhs_x(double *rhs,double * u,double * sub_diag_x,double * hyp_diag_x, si
 				rhs[i+ j*N+ k*N2]+= sub_diag_x[i+ j*N+ k*N2]*u[i-1+ j*N+ k*N2]+
 					hyp_diag_x[i+ j*N+ k*N2]*u[i+1+ j*N+ k*N2];
 			}
-			rhs[j*N+ k*N2]+= (hyp_diag_x[j*N+ k*N2]+ sub_diag_x[j*N+ k*N2])
-				*u[1+ j*N+ k*N2];
-			rhs[N-1+ j*N+ k*N2]+= (hyp_diag_x[N-1+ j*N+ k*N2]+ sub_diag_x[N-1+ j*N+ k*N2])
-				*u[N-2+ j*N+ k*N2];
 		}
 	}
 
+	for(k= 0; k< N; ++k){
+		for(j= 0; j< N; ++j){
+			rhs[j*N+ k*N2]+= (hyp_diag_x[j*N+ k*N2]+ sub_diag_x[j*N+ k*N2])
+			*u[1+ j*N+ k*N2];
+			rhs[N-1+ j*N+ k*N2]+= (hyp_diag_x[N-1+ j*N+ k*N2]+ sub_diag_x[N-1+ j*N+ k*N2])
+			*u[N-2+ j*N+ k*N2];
+		}
+	}
 	return rhs;
 }
 
@@ -129,4 +130,3 @@ double* rhs_z(double* rhs, double* u, double* sub_diag_z, double* hyp_diag_z, si
 	
 	return rhs;
 }
-
