@@ -1,3 +1,4 @@
+/*
 // How to fill the tmp struct : i.e. demaloc
 //======================================
 // demaloc.udCoef= zeros(dim,dim,dim);
@@ -18,7 +19,7 @@
 // demaloc.ad= demaloc.phidd;
 // this does not create a new array, but the array is shared by the 2 pointers
 // ---------------THIS IS WRONG---------------
-
+*/
 #include<math.h>
 #include<mex.h>
 #include<stdlib.h>
@@ -32,11 +33,11 @@ double * derivative_yy(double * f, mwSize N, double *df);
 double * derivative_zz(double * f, mwSize N, double *df);
 
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]){
-	double *a, *Cg, *g, *Cphi, *phi, *C; //input
-	char *xyz; //input
-	double *sub_diag, *diag, *hyp_diag; //output
+	double *a, *Cg, *g, *Cphi, *phi, *C; /*input*/
+	char *xyz; /*input*/
+	double *sub_diag, *diag, *hyp_diag; /*output*/
 		
-	//internal variables
+	/*internal variables*/
 	double *a_d, *g_d, *phi_d, hI2, *u_d_coeff, hh, *g_dd, *phi_dd;
 	double phiTerm, gTerm;
 	size_t dimCphi, dimCg;
@@ -47,7 +48,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]){
 	if( 3 != nlhs || nrhs != 8)
 		mexErrMsgTxt("not correct number of input arguments");
 
-	//input
+	/*input*/
 	a= mxGetPr(prhs[0]);
 	Cg= mxGetPr(prhs[1]);
 	g= mxGetPr(prhs[2]);
@@ -90,7 +91,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]){
 	phi_dd= mxGetPr(tmp);
 	
 	
-	//output
+	/*output*/
 	ndim = mxGetNumberOfDimensions(prhs[0]);
 	dims = mxGetDimensions(prhs[0]);
 	plhs[0] = mxCreateNumericArray(ndim, dims, mxDOUBLE_CLASS, mxREAL);
@@ -194,7 +195,7 @@ double * derivative_x(double * f, mwSize N, double *df){
 	mwSize N2, i,j,k;
 	
 	N2=N*N;
-	Ih=0.5*(N-1); // 0.5/h
+	Ih=0.5*(N-1); /* 0.5/h*/
 	
 	for(k= 0; k< N; ++k){
 		for(j= 0; j< N; ++j){
@@ -214,7 +215,7 @@ double * derivative_y(double * f, mwSize N, double *df){
 	mwSize N2, i,j,k;
 		
 	N2=N*N;
-	Ih= 0.5*(N-1); // 0.5/h
+	Ih= 0.5*(N-1); /* 0.5/h*/
 	
 	for(k= 0; k< N; ++k){
 		for(j= 1; j< N-1; ++j){
@@ -235,7 +236,7 @@ double * derivative_z(double * f, mwSize N, double * df){
 	mwSize N2, i,j,k;
 	
 	N2=N*N;
-	Ih= 0.5*(N-1); // 0.5/h
+	Ih= 0.5*(N-1); /* 0.5/h*/
 	
 	for(k= 1; k< N-1; ++k){
 		for(j= 0; j< N; ++j){
@@ -264,7 +265,7 @@ double * derivative_xx(double * f, mwSize N, double *df){
 	mwSize N2, i,j,k;
 	
 	N2=N*N;
-	Ih2= ((N-1)*(N-1)); // 1/h^2
+	Ih2= ((N-1)*(N-1)); /* 1/h^2*/
 	
 	for(k= 0; k< N; ++k){
 		for(j= 0; j< N; ++j){
@@ -283,7 +284,7 @@ double * derivative_yy(double * f, mwSize N, double *df){
 	mwSize N2, i,j,k;
 	
 	N2=N*N;
-	Ih2= ((N-1)*(N-1)); // 1/h^2
+	Ih2= ((N-1)*(N-1)); /* 1/h^2*/
 	
 	for(k= 0; k< N; ++k){
 		for(j= 1; j< N-1; ++j){
@@ -304,7 +305,7 @@ double * derivative_zz(double * f, mwSize N, double *df){
 	mwSize N2, i,j,k;
 	
 	N2=N*N;
-	Ih2= ((N-1)*(N-1)); // 1/h^2
+	Ih2= ((N-1)*(N-1)); /* 1/h^2*/
 	
 	for(k= 1; k< N-1; ++k){
 		for(j= 0; j< N; ++j){
