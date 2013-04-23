@@ -10,10 +10,8 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]){
 	double h2;
 
 	size_t N, N2, i, j, k;
-	mwSize ndim;
-	const mwSize *dims;
-	
-	if( 1 != nlhs || nrhs != 7)
+
+	if( 1 != nlhs || nrhs != 8)
 		mexErrMsgTxt("wrong number of arguments");
 
 	u_mid= mxGetPr(prhs[0]);
@@ -29,10 +27,8 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]){
 	N2=N*N;
 	h2= 1.0/((N-1)*(N-1));
 
-	//output
-	ndim = mxGetNumberOfDimensions(prhs[0]);
-	dims = mxGetDimensions(prhs[0]);
-	plhs[0] = mxCreateNumericArray(ndim, dims, mxDOUBLE_CLASS, mxREAL);
+	//Output
+	plhs[0]= prhs[7];
 	rhs= mxGetPr(plhs[0]);
 
 	for(k= 0; k< N; ++k){
