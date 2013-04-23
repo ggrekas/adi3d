@@ -19,6 +19,15 @@
 %	Cphi:  [1x1] or [NxNxN]. Cphi(x,y,z,n+1/2)
 %	phi:   [NxNxN]. phi(x,y,z,n+1/2)
 %	h_t:   [1x1]: the time step
+%  tmp_struct: [1x1]: create the struct tmp_stuct with the command
+%      tmp_struct = struct('udCoef', zeros(n, n, n), 'ad', zeros(n, n, n),...
+%                 'gd', zeros(n, n, n), 'phid' , zeros(n, n, n), 'gdd',...
+%                  zeros(n, n, n), 'phidd', zeros(n, n, n));
+% in order to avoid continuously memory allocation and memory release.
+% WARNING!!! Struct can have any name but must have the SAME field names and 
+% the arrays must NOT be shared.
+%  rhs:  [NxNxN]: a preallocated variable to avoid again memory allocation 
+% and release.
 %
 % Output Arguments:
 %	u:	[NxNxN]: the function u(x,y,z,n+1)
@@ -32,7 +41,8 @@
 % Author: Giorgos Grekas (grekas.g@gmail.com)
 %
 
-function u = myadi_3D(u, a, C, f_cur, f_next, Cg, g, Cphi, phi, h_t)
+function [u, tmp_struct, rhs] = myadi_3D(u, a, C, f_cur, f_next, Cg, g, Cphi, phi, h_t,...,
+   tmp_struct, rhs)
 N = size(u,1);
 h = 1/(N-1);
 
@@ -41,9 +51,12 @@ f_next = h*h*h_t*f_next;
 
 % applies operators Ax, Ay, Az respectively
 %addpath('mexFiles/')
-[sub_diag_x, diag_x, hyp_diag_x] = compute_xyz_diags(a, Cg, g, Cphi, phi, C, 'x'); %TODO remove 1/h^2 in derivatives
-[sub_diag_y, diag_y, hyp_diag_y] = compute_xyz_diags(a, Cg, g, Cphi, phi, C, 'y');
-[sub_diag_z, diag_z, hyp_diag_z] = compute_xyz_diags(a, Cg, g, Cphi, phi, C, 'z');
+[sub_diag_x, diag_x, hyp_diag_x] = compute_xyz_diags(a, Cg, g, Cphi, phi, C, 'x',...
+													tmp_struct); %TODO remove 1/h^2 in derivatives
+[sub_diag_y, diag_y, hyp_diag_y] = compute_xyz_diags(a, Cg, g, Cphi, phi, C, 'y',...
+													tmp_struct);
+[sub_diag_z, diag_z, hyp_diag_z] = compute_xyz_diags(a, Cg, g, Cphi, phi, C, 'z',...
+													tmp_struct);
 
 
 sub_diag_x = 0.5*h_t*sub_diag_x;
@@ -58,20 +71,20 @@ sub_diag_z = h_t*sub_diag_z;
 hyp_diag_z = h_t*hyp_diag_z;
 diag_z = h_t*diag_z;
 
-%rhs = zeros(size(u));
+% rhs = zeros(size(u));
 u_mid = x_sweep( u, f_cur, sub_diag_x, diag_x, hyp_diag_x, sub_diag_y, diag_y, hyp_diag_y, ...
-   sub_diag_z, diag_z, hyp_diag_z);
-u_mid = y_sweep(u_mid, u, -0.5*sub_diag_y, -0.5*diag_y, -0.5*hyp_diag_y);
-u = z_sweep(u_mid, u, -0.5*sub_diag_y, -0.5*diag_y, -0.5*hyp_diag_y, f_cur, f_next);
+   sub_diag_z, diag_z, hyp_diag_z, rhs);
+u_mid = y_sweep(u_mid, u, -0.5*sub_diag_y, -0.5*diag_y, -0.5*hyp_diag_y, rhs);
+u = z_sweep(u_mid, u, -0.5*sub_diag_y, -0.5*diag_y, -0.5*hyp_diag_y, f_cur, f_next, rhs);
 return;
 
 function u_mid = x_sweep(u, f, sub_diag_x, diag_x, hyp_diag_x, sub_diag_y, diag_y, hyp_diag_y, ...
-   sub_diag_z, diag_z, hyp_diag_z)
+   sub_diag_z, diag_z, hyp_diag_z, rhs)
 N = size(u,1);
 h = 1/(N-1);
 
 rhs = rhs_calculation_x_sweep(u, f, sub_diag_x, diag_x, hyp_diag_x, sub_diag_y, diag_y, hyp_diag_y, ...
-   sub_diag_z, diag_z, hyp_diag_z);
+   sub_diag_z, diag_z, hyp_diag_z, rhs);
 
 u_mid = u;
 u_mid(1) = u_mid(1) -1;
@@ -82,11 +95,11 @@ sub_diag_x(end,:,:) = hyp_diag_x(end,:,:) + sub_diag_x(end,:,:);
 u_mid = TDMAsolver(u_mid, -sub_diag_x, h*h -diag_x, -hyp_diag_x, rhs);
 return;
 
-function u_mid = y_sweep(u_mid, u, sub_diag_y, diag_y, hyp_diag_y)
+function u_mid = y_sweep(u_mid, u, sub_diag_y, diag_y, hyp_diag_y, rhs)
 N = size(u,1);
 h = 1/(N-1);
 
-rhs = rhs_calculation_y_sweep(u_mid, u, sub_diag_y, diag_y, hyp_diag_y);
+rhs = rhs_calculation_y_sweep(u_mid, u, sub_diag_y, diag_y, hyp_diag_y, rhs);
 
 hyp_diag_y(:,1,:) = hyp_diag_y(:,1,:) + sub_diag_y(:,1,:);
 sub_diag_y(:,end,:) = hyp_diag_y(:,end,:) + sub_diag_y(:,end,:);
@@ -101,11 +114,13 @@ u_mid = permute(u_mid, [2, 1, 3]);
 return;
 
 
-function u = z_sweep(u_mid, u, sub_diag_z, diag_z, hyp_diag_z, f_cur, f_next)
+function u = z_sweep(u_mid, u, sub_diag_z, diag_z, hyp_diag_z, f_cur, f_next, ...
+   rhs)
 N = size(u,1);
 h = 1/(N-1);
 
-rhs = rhs_calculation_z_sweep(u_mid, u, sub_diag_z, diag_z, hyp_diag_z, f_cur, f_next);
+rhs = rhs_calculation_z_sweep(u_mid, u, sub_diag_z, diag_z, hyp_diag_z,...
+   f_cur, f_next, rhs);
 
 hyp_diag_z(:,:,1) = hyp_diag_z(:,:,1) + sub_diag_z(:,:,1);
 sub_diag_z(:,:,end) = hyp_diag_z(:,:,end) + sub_diag_z(:,:,end);
