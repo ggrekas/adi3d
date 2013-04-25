@@ -4,7 +4,7 @@
 % u_t = \Nabla[ a (\Nabla(u))] + Cg*\Nabla[u \Nabla(g)]+Cphi*\Nabla[u \Nabla(phi)]
 % + c*u + f
 %
-% function u = myadi_3D(u, a, C, f_cur, f_next, Cg, g, Cphi, phi, h_t)
+% function [u, tmp_struct, rhs] = myadi_3D(u, a, C, f_cur, f_next, Cg, g, Cphi, phi, h_t)
 %
 % 
 %
