@@ -4,8 +4,8 @@
 % u_t = \Nabla[ a (\Nabla(u))] + Cg*\Nabla[u \Nabla(g)]+Cphi*\Nabla[u \Nabla(phi)]
 % + c*u + f
 %
-% function [u, tmp_struct, rhs] = myadi_3D(u, a, C, f_cur, f_next, Cg, g, Cphi, phi, h_t)
-%
+% function [u, tmp_struct, rhs] = myadi_3Du, a, C, f_cur, f_next, h_t,...
+%    tmp_struct, rhs, Cg, g, Cphi, phi)
 % 
 %
 % Input Arguments:
@@ -14,10 +14,6 @@
 %	C:  	 [NxNxN]. c(x,y,z,n+1/2)
 %	f_cur: [NxNxN]: f(x,y,z,n)
 %	f_next:[NxNxN]: f(x,y,z,n+1)
-%	Cg:  	 [1x1] or [NxNxN]. Cg(x,y,z,n+1/2)
-%	g:  	 [NxNxN]. g(x,y,z,n+1/2)
-%	Cphi:  [1x1] or [NxNxN]. Cphi(x,y,z,n+1/2)
-%	phi:   [NxNxN]. phi(x,y,z,n+1/2)
 %	h_t:   [1x1]: the time step
 %  tmp_struct: [1x1]: create the struct tmp_stuct with the command
 %      tmp_struct = struct('udCoef', zeros(n, n, n), 'ad', zeros(n, n, n),...
@@ -28,6 +24,10 @@
 % the arrays must NOT be shared.
 %  rhs:  [NxNxN]: a preallocated variable to avoid again memory allocation 
 % and release.
+%	Cg:  	 [1x1] or [NxNxN]. Cg(x,y,z,n+1/2)
+%	g:  	 [NxNxN]. g(x,y,z,n+1/2)
+%	Cphi:  [1x1] or [NxNxN]. Cphi(x,y,z,n+1/2)
+%	phi:   [NxNxN]. phi(x,y,z,n+1/2)
 %
 % Output Arguments:
 %	u:	[NxNxN]: the function u(x,y,z,n+1)
@@ -41,8 +41,8 @@
 % Author: Giorgos Grekas (grekas.g@gmail.com)
 %
 
-function [u, tmp_struct, rhs] = myadi_3D(u, a, C, f_cur, f_next, Cg, g, Cphi, phi, h_t,...,
-   tmp_struct, rhs)
+function [u, tmp_struct, rhs] = myadi_3D(u, a, C, f_cur, f_next, h_t,...
+   tmp_struct, rhs, Cg, g, Cphi, phi)
 N = size(u,1);
 h = 1/(N-1);
 
@@ -51,13 +51,18 @@ f_next = h*h*h_t*f_next;
 
 % applies operators Ax, Ay, Az respectively
 %addpath('mexFiles/')
-[sub_diag_x, diag_x, hyp_diag_x] = compute_xyz_diags(a, Cg, g, Cphi, phi, C, 'x',...
-													tmp_struct); %TODO remove 1/h^2 in derivatives
-[sub_diag_y, diag_y, hyp_diag_y] = compute_xyz_diags(a, Cg, g, Cphi, phi, C, 'y',...
-													tmp_struct);
-[sub_diag_z, diag_z, hyp_diag_z] = compute_xyz_diags(a, Cg, g, Cphi, phi, C, 'z',...
-													tmp_struct);
-
+if(nargins==8)
+   [sub_diag_x, diag_x, hyp_diag_x] = compute_xyz_diags(a, C, 'x',...,
+      tmp_struct, Cg, g, Cphi, phi); %TODO remove 1/h^2 in derivatives
+   [sub_diag_y, diag_y, hyp_diag_y] = compute_xyz_diags(a, C, 'y',...
+      tmp_struct, Cg, g, Cphi, phi);
+   [sub_diag_z, diag_z, hyp_diag_z] = compute_xyz_diags(a, C, 'z',...
+      tmp_struct, Cg, g, Cphi, phi);
+else
+   [sub_diag_x, diag_x, hyp_diag_x] = compute_xyz_diags(a, C, 'x', tmp_struct);
+   [sub_diag_y, diag_y, hyp_diag_y] = compute_xyz_diags(a, C, 'y', tmp_struct);
+   [sub_diag_z, diag_z, hyp_diag_z] = compute_xyz_diags(a, C, 'z', tmp_struct);
+end
 
 sub_diag_x = 0.5*h_t*sub_diag_x;
 hyp_diag_x = 0.5*h_t*hyp_diag_x;
@@ -72,19 +77,20 @@ hyp_diag_z = h_t*hyp_diag_z;
 diag_z = h_t*diag_z;
 
 % rhs = zeros(size(u));
-u_mid = x_sweep( u, f_cur, sub_diag_x, diag_x, hyp_diag_x, sub_diag_y, diag_y, hyp_diag_y, ...
-   sub_diag_z, diag_z, hyp_diag_z, rhs);
+u_mid = x_sweep( u, f_cur, sub_diag_x, diag_x, hyp_diag_x, sub_diag_y, diag_y,...
+   hyp_diag_y, sub_diag_z, diag_z, hyp_diag_z, rhs);
 u_mid = y_sweep(u_mid, u, -0.5*sub_diag_y, -0.5*diag_y, -0.5*hyp_diag_y, rhs);
-u = z_sweep(u_mid, u, -0.5*sub_diag_y, -0.5*diag_y, -0.5*hyp_diag_y, f_cur, f_next, rhs);
+u = z_sweep(u_mid, u, -0.5*sub_diag_y, -0.5*diag_y, -0.5*hyp_diag_y, f_cur,...
+   f_next, rhs);
 return;
 
-function u_mid = x_sweep(u, f, sub_diag_x, diag_x, hyp_diag_x, sub_diag_y, diag_y, hyp_diag_y, ...
-   sub_diag_z, diag_z, hyp_diag_z, rhs)
+function u_mid = x_sweep(u, f, sub_diag_x, diag_x, hyp_diag_x, sub_diag_y,...
+ diag_y, hyp_diag_y, sub_diag_z, diag_z, hyp_diag_z, rhs)
 N = size(u,1);
 h = 1/(N-1);
 
-rhs = rhs_calculation_x_sweep(u, f, sub_diag_x, diag_x, hyp_diag_x, sub_diag_y, diag_y, hyp_diag_y, ...
-   sub_diag_z, diag_z, hyp_diag_z, rhs);
+rhs = rhs_calculation_x_sweep(u, f, sub_diag_x, diag_x, hyp_diag_x,...
+   sub_diag_y, diag_y, hyp_diag_y, sub_diag_z, diag_z, hyp_diag_z, rhs);
 
 u_mid = u;
 u_mid(1) = u_mid(1) -1;
@@ -93,6 +99,7 @@ hyp_diag_x(1,:,:) = hyp_diag_x(1,:,:) + sub_diag_x(1,:,:);
 sub_diag_x(end,:,:) = hyp_diag_x(end,:,:) + sub_diag_x(end,:,:);
 
 u_mid = TDMAsolver(u_mid, -sub_diag_x, h*h -diag_x, -hyp_diag_x, rhs);
+% u_mid = TDMAsolver_par(u_mid, -sub_diag_x, h*h -diag_x, -hyp_diag_x, rhs);
 return;
 
 function u_mid = y_sweep(u_mid, u, sub_diag_y, diag_y, hyp_diag_y, rhs)
@@ -109,6 +116,9 @@ u_mid = permute(u_mid, [2,1,3]);
 u_mid = TDMAsolver( u_mid, permute(sub_diag_y, [2, 1, 3]),...
   h*h + permute(diag_y, [2, 1, 3]), permute(hyp_diag_y, [2, 1, 3]),...
   permute(rhs, [2, 1, 3]) );
+% u_mid = TDMAsolver_par( u_mid, permute(sub_diag_y, [2, 1, 3]),...
+%   h*h + permute(diag_y, [2, 1, 3]), permute(hyp_diag_y, [2, 1, 3]),...
+%   permute(rhs, [2, 1, 3]) );
 
 u_mid = permute(u_mid, [2, 1, 3]);
 return;
@@ -130,6 +140,9 @@ u = permute(u, [3, 1, 2]);
 u = TDMAsolver(u, permute(sub_diag_z, [3, 1, 2]),...
    h*h + permute(diag_z, [3, 1, 2]), permute(hyp_diag_z, [3, 1, 2]),...
    permute(rhs, [3, 1, 2]) );
+% u = TDMAsolver_par(u, permute(sub_diag_z, [3, 1, 2]),...
+%    h*h + permute(diag_z, [3, 1, 2]), permute(hyp_diag_z, [3, 1, 2]),...
+%    permute(rhs, [3, 1, 2]) );
 
 u = permute(u, [2, 3, 1]);
 return;
