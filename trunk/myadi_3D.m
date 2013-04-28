@@ -51,7 +51,7 @@ f_next = h*h*h_t*f_next;
 
 % applies operators Ax, Ay, Az respectively
 %addpath('mexFiles/')
-if(nargins==8)
+if(nargin==8)
    [sub_diag_x, diag_x, hyp_diag_x] = compute_xyz_diags(a, C, 'x',...,
       tmp_struct, Cg, g, Cphi, phi); %TODO remove 1/h^2 in derivatives
    [sub_diag_y, diag_y, hyp_diag_y] = compute_xyz_diags(a, C, 'y',...
