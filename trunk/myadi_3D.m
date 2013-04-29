@@ -9,12 +9,12 @@
 % 
 %
 % Input Arguments:
-%	u:     [NxNxN]: the input function. u(x,y,z,n)
-%	a:  	 [1x1] or [NxNxN]: the diffusion coefficient.
-%	C:  	 [NxNxN]. c(x,y,z,n+1/2)
-%	f_cur: [NxNxN]: f(x,y,z,n)
-%	f_next:[NxNxN]: f(x,y,z,n+1)
-%	h_t:   [1x1]: the time step
+%	u:      [NxNxN]: the input function. u(x,y,z,n)
+%	a:      [1x1] or [NxNxN]: the diffusion coefficient.
+%	C:  	[NxNxN]. c(x,y,z,n+1/2)
+%	f_cur:  [NxNxN]: f(x,y,z,n)
+%	f_next: [NxNxN]: f(x,y,z,n+1)
+%	h_t:    [1x1]: the time step
 %  tmp_struct: [1x1]: create the struct tmp_stuct with the command
 %      tmp_struct = struct('udCoef', zeros(n, n, n), 'ad', zeros(n, n, n),...
 %                 'gd', zeros(n, n, n), 'phid' , zeros(n, n, n), 'gdd',...
@@ -24,10 +24,10 @@
 % the arrays must NOT be shared.
 %  rhs:  [NxNxN]: a preallocated variable to avoid again memory allocation 
 % and release.
-%	Cg:  	 [1x1] or [NxNxN]. Cg(x,y,z,n+1/2)
-%	g:  	 [NxNxN]. g(x,y,z,n+1/2)
-%	Cphi:  [1x1] or [NxNxN]. Cphi(x,y,z,n+1/2)
-%	phi:   [NxNxN]. phi(x,y,z,n+1/2)
+%	Cg:		[1x1] or [NxNxN]. Cg(x,y,z,n+1/2)
+%	g:      [NxNxN]. g(x,y,z,n+1/2)
+%	Cphi:   [1x1] or [NxNxN]. Cphi(x,y,z,n+1/2)
+%	phi:    [NxNxN]. phi(x,y,z,n+1/2)
 %
 % Output Arguments:
 %	u:	[NxNxN]: the function u(x,y,z,n+1)
