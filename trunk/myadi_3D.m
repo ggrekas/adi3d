@@ -43,26 +43,32 @@
 
 function [u, tmp_struct, rhs] = myadi_3D(u, a, C, f_cur, f_next, h_t,...
    tmp_struct, rhs, Cg, g, Cphi, phi)
-N = size(u,1);
-h = 1/(N-1);
 
 f_cur = h*h*h_t*f_cur;
 f_next = h*h*h_t*f_next;
 
 % applies operators Ax, Ay, Az respectively
 %addpath('mexFiles/')
-if(nargin==8)
+if(12 == nargin)
    [sub_diag_x, diag_x, hyp_diag_x] = compute_xyz_diags(a, C, 'x',...,
       tmp_struct, Cg, g, Cphi, phi); %TODO remove 1/h^2 in derivatives
    [sub_diag_y, diag_y, hyp_diag_y] = compute_xyz_diags(a, C, 'y',...
       tmp_struct, Cg, g, Cphi, phi);
    [sub_diag_z, diag_z, hyp_diag_z] = compute_xyz_diags(a, C, 'z',...
       tmp_struct, Cg, g, Cphi, phi);
-else
+elseif(8 == nargin)
    [sub_diag_x, diag_x, hyp_diag_x] = compute_xyz_diags(a, C, 'x', tmp_struct);
    [sub_diag_y, diag_y, hyp_diag_y] = compute_xyz_diags(a, C, 'y', tmp_struct);
    [sub_diag_z, diag_z, hyp_diag_z] = compute_xyz_diags(a, C, 'z', tmp_struct);
+else
+	error('wrong number of arguments');
 end
+
+N = size(u,1);
+h = 1/(N-1);
+
+f_cur = h*h*h_t*f_cur;
+f_next = h*h*h_t*f_next;
 
 sub_diag_x = 0.5*h_t*sub_diag_x;
 hyp_diag_x = 0.5*h_t*hyp_diag_x;
@@ -76,7 +82,6 @@ sub_diag_z = h_t*sub_diag_z;
 hyp_diag_z = h_t*hyp_diag_z;
 diag_z = h_t*diag_z;
 
-% rhs = zeros(size(u));
 u_mid = x_sweep( u, f_cur, sub_diag_x, diag_x, hyp_diag_x, sub_diag_y, diag_y,...
    hyp_diag_y, sub_diag_z, diag_z, hyp_diag_z, rhs);
 u_mid = y_sweep(u_mid, u, -0.5*sub_diag_y, -0.5*diag_y, -0.5*hyp_diag_y, rhs);
