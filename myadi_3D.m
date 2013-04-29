@@ -44,11 +44,6 @@
 function [u, tmp_struct, rhs] = myadi_3D(u, a, C, f_cur, f_next, h_t,...
    tmp_struct, rhs, Cg, g, Cphi, phi)
 
-f_cur = h*h*h_t*f_cur;
-f_next = h*h*h_t*f_next;
-
-% applies operators Ax, Ay, Az respectively
-%addpath('mexFiles/')
 if(12 == nargin)
    [sub_diag_x, diag_x, hyp_diag_x] = compute_xyz_diags(a, C, 'x',...,
       tmp_struct, Cg, g, Cphi, phi); %TODO remove 1/h^2 in derivatives
