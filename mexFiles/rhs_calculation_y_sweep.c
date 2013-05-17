@@ -24,7 +24,6 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]){
 	N2=N*N;
 	h2= 1.0/((N-1)*(N-1)); /* h^2 */
 
-	//output
 	plhs[0]= prhs[5];
 	rhs= mxGetPr(plhs[0]);
 
